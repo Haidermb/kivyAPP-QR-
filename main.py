@@ -622,128 +622,137 @@ class TestCamera(App):
             from android.permissions import request_permissions, Permission
             request_permissions([Permission.READ_EXTERNAL_STORAGE,Permission.WRITE_EXTERNAL_STORAGE,Permission.CAMERA,Permission.INTERNET,Permission.ACCESS_WIFI_STATE,Permission.READ_PHONE_STATE])
             
-            # getting mac , android , imbed id's
-            try :          
-                from jnius import autoclass, cast
-                
-                PythonActivity = autoclass('org.kivy.android.PythonActivity')
-                
-
-                # getting mac_add
-                try:
-                    WifiManager = autoclass('android.net.wifi.WifiManager')
-                    wifi_manager = cast(WifiManager, PythonActivity.mActivity.getSystemService(PythonActivity.WIFI_SERVICE))
-                    wifi_info = wifi_manager.getConnectionInfo()
-                    mac_add = wifi_info.getMacAddress()
-                    mac_add = str(mac_add)
-
-                except:
-                    mac_add = 'Not found'
-                
-                
-                # getting imbed
-                try:
-
-                    Context = autoclass('android.content.Context')
-                    telephonyManager = cast('android.telephony.TelephonyManager', PythonActivity.mActivity.getSystemService(Context.TELEPHONY_SERVICE))
-                    imbed = telephonyManager.getDeviceId()
-                except:
-                    imbed = 'NotFound'
-
-                # getting android id
-                try : 
-                    SettingsSecure = autoclass('android.provider.Settings.Secure')
-                    content_resolver = PythonActivity.mActivity.getContentResolver()
-                    android_id = SettingsSecure.getString(content_resolver, SettingsSecure.ANDROID_ID)
-                    android_id = str(android_id)
-                except:
-                    android_id = 'Not_found'
-
-            except:
-                pass
-
-            # getting wifi_mac                    
-            try:
-                # Access the Android API classes using Pyjnius
-                WifiManager = autoclass('android.net.wifi.WifiManager')
-                Context = autoclass('android.content.Context')
-
-                # Get the Wi-Fi service
-                wifi_manager = PythonActivity.mActivity.getSystemService(Context.WIFI_SERVICE)
-
-                # Check if Wi-Fi is enabled
-                if wifi_manager.isWifiEnabled():
-                    # Get the MAC address
-                    wifi = wifi_manager.getConnectionInfo().getMacAddress()
+        # getting mac , android , imbed id's
+        try : 
+            if platform =='android':
+                try :          
+                    from jnius import autoclass, cast
                     
-                else:
-                    wifi =  "Wi-Fi is disabled"
-            except :
-                    wifi = 'Not found'
+                    PythonActivity = autoclass('org.kivy.android.PythonActivity')
+                    
 
+                    # getting mac_add
+                    try:
+                        WifiManager = autoclass('android.net.wifi.WifiManager')
+                        wifi_manager = cast(WifiManager, PythonActivity.mActivity.getSystemService(PythonActivity.WIFI_SERVICE))
+                        wifi_info = wifi_manager.getConnectionInfo()
+                        mac_add = wifi_info.getMacAddress()
+                        mac_add = str(mac_add)
 
+                    except:
+                        mac_add = 'Not found'
+                    
+                    
+                    # getting imbed
+                    try:
 
-            # getting file_path    
-            try: 
-                folder_name = 'qrscan'
-                file_name = 'demo.json'
+                        Context = autoclass('android.content.Context')
+                        telephonyManager = cast('android.telephony.TelephonyManager', PythonActivity.mActivity.getSystemService(Context.TELEPHONY_SERVICE))
+                        imbed = telephonyManager.getDeviceId()
+                    except:
+                        imbed = 'NotFound'
 
-                # Get the app-specific directory
-                app_dir = os.path.abspath(os.sep)
+                    # getting android id
+                    try : 
+                        SettingsSecure = autoclass('android.provider.Settings.Secure')
+                        content_resolver = PythonActivity.mActivity.getContentResolver()
+                        android_id = SettingsSecure.getString(content_resolver, SettingsSecure.ANDROID_ID)
+                        android_id = str(android_id)
+                    except:
+                        android_id = 'Not_found'
+
+                except:
+                    pass
+
+                # getting wifi_mac                    
+                try:
+                    from jnius import autoclass, cast
                 
-                # Create the folder if it doesn't exist
-                folder_path = os.path.join(app_dir, folder_name)
-                os.makedirs(folder_path, exist_ok=True)
-                
-                # Create the file if it doesn't exist
-                file_path = os.path.join(folder_path, file_name)
-                 
-                # if not os.path.exists(file_path):
-                #     with open(file_path, 'w') as file:
-                #         file.write('') 
-        
-            except:
-                folder_name = 'qrscan'
-                file_name = 'demo.json'
+                    PythonActivity = autoclass('org.kivy.android.PythonActivity')
 
-                from jnius import autoclass
-                from os.path import join
-                Environment = autoclass('android.os.Environment')
-                directory = join(Environment.getExternalStorageDirectory().getAbsolutePath(), folder_name)
-                
-                # Create the folder if it doesn't exist
-                File = autoclass('java.io.File')
+                    # Access the Android API classes using Pyjnius
+                    WifiManager = autoclass('android.net.wifi.WifiManager')
+                    Context = autoclass('android.content.Context')
 
-                folder = File(directory)
+                    # Get the Wi-Fi service
+                    wifi_manager = PythonActivity.mActivity.getSystemService(Context.WIFI_SERVICE)
 
-                if not folder.exists():
-                    folder.mkdirs()
-                
-                # Create the file if it doesn't exist
-                file_path = join(directory, file_name)
+                    # Check if Wi-Fi is enabled
+                    if wifi_manager.isWifiEnabled():
+                        # Get the MAC address
+                        wifi = wifi_manager.getConnectionInfo().getMacAddress()
+                        
+                    else:
+                        wifi =  "Wi-Fi is disabled"
+                except :
+                        wifi = 'Not found'
 
-                file = File(file_path)
-                if not file.exists():
-                    file.createNewFile()                            
-       
-        
-        else :
-            #getting mac_add
-            try : 
-                mac_add = str(gma())
-                print(mac_add)        
-            except :
-                mac_add = 'Not found'
 
-            #getting file_path
-            try : 
-                folder_path ='./otherAPP'
-                file_name = 'demo.json'
+
+                # getting file_path    
+                try:
+                    ''' 
+                    folder_name = 'qrscan'
+                    file_name = 'demo.json'
+
+                    # Get the app-specific directory
+                    app_dir = os.path.abspath(os.sep)
+                    
+                    # Create the folder if it doesn't exist
+                    folder_path = os.path.join(app_dir, folder_name)
+                    os.makedirs(folder_path, exist_ok=True)
+                    
+                    # Create the file if it doesn't exist
+                    file_path = os.path.join(folder_path, file_name)
+                        
+                    # if not os.path.exists(file_path):
+                    #     with open(file_path, 'w') as file:
+                    #         file.write('') '''
+                    folder_name = 'qrscan'
+                    file_name = 'demo.json'
+
+                    from jnius import autoclass
+                    from os.path import join
+                    Environment = autoclass('android.os.Environment')
+                    directory = join(Environment.getExternalStorageDirectory().getAbsolutePath(), folder_name)
+                    
+                    # Create the folder if it doesn't exist
+                    File = autoclass('java.io.File')
+
+                    folder = File(directory)
+
+                    if not folder.exists():
+                        folder.mkdirs()
+                    
+                    # Create the file if it doesn't exist
+                    file_path = join(directory, file_name)
+
+                    file = File(file_path)
+                    if not file.exists():
+                        file.createNewFile()                            
+
+                except:
+                    file_path = ' Not Found'
             
-                file_path = os.path.join('./otherAPP','demo.json')
-            except:
-                pass    
+            else :
+                #getting mac_add
+                try : 
+                    mac_add = str(gma())
+                    print(mac_add)        
+                except :
+                    mac_add = 'Not found'
 
+                #getting file_path
+                try : 
+                    folder_path ='./otherAPP'
+                    file_name = 'demo.json'
+                
+                    file_path = os.path.join('./otherAPP','demo.json')
+                except:
+                    pass    
+
+        except : 
+            pass            
 
         screen_manager = MyScreenManager()
         screen_manager.add_widget(LoginScreen(name='login'))
