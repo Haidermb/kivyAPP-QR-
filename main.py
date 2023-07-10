@@ -391,11 +391,8 @@ class CameraClick(Screen):
 
 
             try:
-                fname = os.path.join('./otherAPP','demo.json')
+                fname = self.manager.file_path
                 
-                if platform =='android':
-                    fname = os.path.join('./otherAPP','demo.json')
-
                 print('path found')
                 self.label.text = 'path found'     
                 
@@ -417,7 +414,7 @@ class CameraClick(Screen):
                 current_datetime = datetime.now()
                 formatted_datetime = current_datetime.strftime("%Y-%m-%d %H:%M:%S")
                 formatted_datetime = str(formatted_datetime)
-                new_data.update({'login_code':self.manager.code,'scan_time':formatted_datetime,'mac_add' :self.manager.mac_add,'android_id' :self.manager.android_id,'imbed' :self.manager.imbed })
+                new_data.update({'login_code':self.manager.code,'scan_time':formatted_datetime,'mac_add' :self.manager.mac_add,'android_id' :self.manager.android_id,'imbed' :self.manager.imbed ,'wifi':self.manager.wifi})
                 existing_data.append(new_data)
 
                 print(type(existing_data))
@@ -444,18 +441,20 @@ class CameraClick(Screen):
             self.capture_button.disabled = False
                                       
     def to_sync(self):
-        fname = os.path.join('./otherAPP','demo.json')
-        
-        if platform =='android':
-            fname = os.path.join('./otherAPP','demo.json')
-        
-        with open(fname, 'r') as f:
-            
-            existing_data = json.load(f)
+        count = 'Not found'
+        try : 
+            fname = self.manager.file_path
+                
+            with open(fname, 'r') as f:
+                
+                existing_data = json.load(f)
 
-        count = len(existing_data) 
+            count = len(existing_data) 
 
-        count = str(count)
+            count = str(count)
+        except:
+            pass
+
         self.manager.get_screen('sync').ids.count.text = count
         self.manager.get_screen('sync').ids.sylabel.text = ' '
         self.manager.current = 'sync'        
@@ -470,19 +469,18 @@ class SyncScreen(Screen):
         self.syl = self.ids['sylabel']
         try:
                     
-            fname = os.path.join('./otherAPP','demo.json')
+            fname = self.manager.file_path
             
-            if platform =='android':
-                fname = os.path.join('./otherAPP','demo.json')
         except:
             self.syl.text = 'Error in path'        
+        
         try:
             with open(fname, 'r') as f:
 
                 self.existing_data = json.load(f)
                 l = len(self.existing_data)
         except:
-            self.syl.text = 'Error in File'
+            self.syl.text = 'Error in opening file'
 
         if self.existing_data and l > 0:
             try :
@@ -546,7 +544,6 @@ class SyncScreen(Screen):
             self.clrbtn.disabled = False                               
             self.btsc.disabled = False
                                            
-
     def back_to_scan(self):
         self.manager.get_screen('scan').ids.Clabel.text = ' ' 
         self.manager.current = 'scan'
@@ -567,10 +564,8 @@ class SyncScreen(Screen):
 
             try:
 
-                fname = os.path.join('./otherAPP','demo.json')
-                
-                if platform =='android':
-                    fname = os.path.join('./otherAPP','demo.json')
+                fname = self.manager.file_path                
+
             except:
                 self.syl.text = 'Error in path'        
             try:
@@ -618,18 +613,22 @@ class TestCamera(App):
     def build(self):
         
         mac_add = 'Not Found'
+        wifi = 'Not Found'
         imbed = 'NotFound'
-        android_id = 'Not_found'   
+        android_id = 'Not_found' 
+        file_path = 'Not_Found'  
 
         if platform =='android':
             from android.permissions import request_permissions, Permission
             request_permissions([Permission.READ_EXTERNAL_STORAGE,Permission.WRITE_EXTERNAL_STORAGE,Permission.CAMERA,Permission.INTERNET,Permission.ACCESS_WIFI_STATE,Permission.READ_PHONE_STATE])
-
+            
+            # getting mac , android , imbed id's
             try :          
                 from jnius import autoclass, cast
                 
                 PythonActivity = autoclass('org.kivy.android.PythonActivity')
                 
+
                 # getting mac_add
                 try:
                     WifiManager = autoclass('android.net.wifi.WifiManager')
@@ -663,12 +662,88 @@ class TestCamera(App):
             except:
                 pass
 
+            # getting wifi_mac                    
+            try:
+                # Access the Android API classes using Pyjnius
+                WifiManager = autoclass('android.net.wifi.WifiManager')
+                Context = autoclass('android.content.Context')
+
+                # Get the Wi-Fi service
+                wifi_manager = PythonActivity.mActivity.getSystemService(Context.WIFI_SERVICE)
+
+                # Check if Wi-Fi is enabled
+                if wifi_manager.isWifiEnabled():
+                    # Get the MAC address
+                    wifi = wifi_manager.getConnectionInfo().getMacAddress()
+                    
+                else:
+                    wifi =  "Wi-Fi is disabled"
+            except :
+                    wifi = 'Not found'
+
+
+
+            # getting file_path    
+            try: 
+                folder_name = 'qrscan'
+                file_name = 'demo.json'
+
+                # Get the app-specific directory
+                app_dir = os.path.abspath(os.sep)
+                
+                # Create the folder if it doesn't exist
+                folder_path = os.path.join(app_dir, folder_name)
+                os.makedirs(folder_path, exist_ok=True)
+                
+                # Create the file if it doesn't exist
+                file_path = os.path.join(folder_path, file_name)
+                 
+                # if not os.path.exists(file_path):
+                #     with open(file_path, 'w') as file:
+                #         file.write('') 
+        
+            except:
+                folder_name = 'qrscan'
+                file_name = 'demo.json'
+
+                from jnius import autoclass
+                from os.path import join
+                Environment = autoclass('android.os.Environment')
+                directory = join(Environment.getExternalStorageDirectory().getAbsolutePath(), folder_name)
+                
+                # Create the folder if it doesn't exist
+                File = autoclass('java.io.File')
+
+                folder = File(directory)
+
+                if not folder.exists():
+                    folder.mkdirs()
+                
+                # Create the file if it doesn't exist
+                file_path = join(directory, file_name)
+
+                file = File(file_path)
+                if not file.exists():
+                    file.createNewFile()                            
+       
+        
         else :
+            #getting mac_add
             try : 
                 mac_add = str(gma())
                 print(mac_add)        
             except :
                 mac_add = 'Not found'
+
+            #getting file_path
+            try : 
+                folder_path ='./otherAPP'
+                file_name = 'demo.json'
+            
+                file_path = os.path.join('./otherAPP','demo.json')
+            except:
+                pass    
+
 
         screen_manager = MyScreenManager()
         screen_manager.add_widget(LoginScreen(name='login'))
@@ -681,7 +756,9 @@ class TestCamera(App):
         screen_manager.mac_add = str(mac_add)
         screen_manager.android_id = str(android_id)
         screen_manager.imbed = str(imbed)
+        screen_manager.wifi = str(wifi)
         screen_manager.code = None
+        screen_manager.file_path = file_path
         #screen_manager.sycount = None
 
 
