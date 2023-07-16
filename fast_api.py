@@ -67,7 +67,6 @@ def save_data(data):
     return messg ,status
 
 
-
 def get_data(data):
     config ={
     'host':"localhost",
@@ -124,9 +123,6 @@ def get_data(data):
         
 
     return code , messg,status
-
-
-
 
 
 @app.post("/save_data/")
